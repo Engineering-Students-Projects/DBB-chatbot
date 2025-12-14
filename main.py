@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import requests
+from persona import HR_PERSONA, NORMAL_PERSONA
+from datetime import datetime
+
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +21,39 @@ if not DEEPSEEK_API_KEY:
 # FASTAPI APP
 # ---------------------------------------------
 app = FastAPI()
+# -----------------------------------------
+now = datetime.now()
+
+today_info = f"""
+CURRENT DATE INFORMATION (THIS IS SYSTEM DATA, NOT PERSONAL DATA):
+
+- Current year: {now.year}
+- Today is: {now.strftime('%A')}
+- Full date: {now.strftime('%d %B %Y')}
+"""
+
+# HR PERSONA DETECTION
+# -----------------------------------------
+HR_KEYWORDS = [
+    "sorumluluk",
+    "ekip",
+    "iletişim",
+    "uygun",
+    "aday",
+    "staj",
+    "pozisyon",
+    "çalışma",
+    "liderlik",
+    "uyum",
+    "disiplin"
+]
+
+def select_persona(user_message: str) -> str:
+    msg = user_message.lower()
+    for keyword in HR_KEYWORDS:
+        if keyword in msg:
+            return HR_PERSONA
+    return NORMAL_PERSONA
 
 @app.get("/")
 def root():
@@ -76,8 +112,10 @@ class UserMessage(BaseModel):
 # ---------------------------------------------
 @app.post("/ask")
 def ask(msg: UserMessage):
+    persona = select_persona(msg.message)
+    full_system_prompt = persona + today_info
 
-    url = f"{DEEPSEEK_BASE_URL}/chat/completions"
+    f"{DEEPSEEK_BASE_URL}/chat/completions"
 
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
@@ -86,7 +124,7 @@ def ask(msg: UserMessage):
     payload = {
         "model": "deepseek-chat",
         "messages": [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": full_system_prompt},
             {"role": "user", "content": msg.message}
         ],
         "max_tokens": 200,
@@ -109,5 +147,6 @@ def ask(msg: UserMessage):
     answer = data["choices"][0]["message"]["content"]
 
     return {"answer": answer}
+
 
 
