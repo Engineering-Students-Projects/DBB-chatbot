@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from datetime import datetime
-from langdetect import detectπ
+from langdetect import detect
 
 load_dotenv()
 
