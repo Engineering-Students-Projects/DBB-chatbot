@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 import requests
@@ -54,6 +55,18 @@ def select_persona(user_message: str) -> str:
         if keyword in msg:
             return HR_PERSONA
     return NORMAL_PERSONA
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://dbb-chatbot.auronvila.com",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def root():
