@@ -7,6 +7,7 @@ import requests
 from persona import HR_PERSONA, NORMAL_PERSONA
 from datetime import datetime
 
+print(">>> THIS MAIN.PY IS RUNNING <<<")
 
 # Load environment variables
 load_dotenv()
@@ -48,6 +49,15 @@ HR_KEYWORDS = [
     "uyum",
     "disiplin"
 ]
+def detect_lang(text: str) -> str:
+    t = text.lower()
+    # Türkçe karakter veya çok temel TR kelimeleri
+    if any(ch in t for ch in "çğıöşü"):
+        return "tr"
+    tr_words = ["ve", "bir", "mi", "mı", "mu", "mü", "de", "da", "ile", "için", "nasıl", "neden", "kimdir"]
+    if any(f" {w} " in f" {t} " for w in tr_words):
+        return "tr"
+    return "en"
 
 def select_persona(user_message: str) -> str:
     msg = user_message.lower()
@@ -118,43 +128,50 @@ You MUST answer with a variation of the following description, and NEVER talk ab
 # ---------------------------------------------
 class UserMessage(BaseModel):
     message: str
-
-
 # ---------------------------------------------
 # DEEPSEEK ASK ENDPOINT
 # ---------------------------------------------
 @app.post("/ask")
 def ask(msg: UserMessage):
+    # Persona seçimi
     persona = select_persona(msg.message)
-    full_system_prompt = persona + today_info
 
-    f"{DEEPSEEK_BASE_URL}/chat/completions"
+    # Dil tespiti
+    lang = detect_lang(msg.message)
+    if lang == "tr":
+        lang_lock = "The user's language is TURKISH. Respond ONLY in Turkish."
+    else:
+        lang_lock = "The user's language is ENGLISH. Respond ONLY in English."
+
+    # System prompt (persona + tarih)
+    full_system_prompt = persona + today_info
 
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
     }
+
     payload = {
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": full_system_prompt},
+            {"role": "system", "content": lang_lock},
             {"role": "user", "content": msg.message}
         ],
         "max_tokens": 200,
-        "temperature": 0.1,  # daha az hayal kursun
+        "temperature": 0.1,
         "top_p": 0.2
     }
+
     url = f"{DEEPSEEK_BASE_URL}/chat/completions"
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
-
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="DeepSeek request timed out")
-
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"DeepSeek connection error: {str(e)}")
+        raise HTTPException(status_code=502, detail=str(e))
 
     data = response.json()
     answer = data["choices"][0]["message"]["content"]
