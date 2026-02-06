@@ -6,14 +6,20 @@ import os
 import requests
 from datetime import datetime
 from langdetect import detect
+from fastapi.security import APIKeyHeader
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL")
+API_KEY = os.getenv("API_KEY")
 
 if not DEEPSEEK_API_KEY:
     raise RuntimeError("DEEPSEEK_API_KEY not set")
+
+if not API_KEY:
+    raise RuntimeError("API_KEY not set")
 
 # ---------------------------------------------
 # FASTAPI APP
@@ -86,6 +92,7 @@ IDENTITY:
 - Date of birth: 02 November 2004
 - Age: 21
 - Nationality: Turkish
+- Languages: English (B2) - Turkish (Native)
 
 EDUCATION:
 - University: Doğuş University
@@ -234,9 +241,16 @@ class UserMessage(BaseModel):
 
 # ---------------------------------------------
 # DEEPSEEK ASK ENDPOINT
-# ---------------------------------------------
+# ----------------------------------------g-----
 @app.post("/ask")
 def ask(msg: UserMessage):
+# api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+   # if not api_key_header:
+  #  return JSONResponse(status_code=401, content={"detail": "API key missing"})
+   # if api_key_header != API_KEY:
+    #    return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
+
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
