@@ -218,7 +218,47 @@ FINAL LANGUAGE ENFORCEMENT:
 def pick_lang(text: str) -> str:
     text = text.lower()
     turkish_chars = "çğıöşü"
-    turkish_words = ["ve", "ile", "hangi", "kim", "nerede", "sınıf", "üniversite", "allah", "sevgili", "ahiret"]
+    turkish_words = [
+        # Selamlasma / Genel
+        "merhaba", "selam", "sa", "iyi", "gun", "aksam", "gece", "tamam", "evet", "hayir",
+        "olur", "degil", "bitti", "basla", "dur", "bekle",
+
+        # Baglac / Edat / Temel Dil
+        "ve", "ile", "ama", "fakat", "lakin", "ya", "yada", "ancak", "hem", "de", "da",
+
+        # Soru Kelimeleri
+        "kim", "ne", "neden", "hangi", "kac", "nasil", "nerede", "nereden", "nereye",
+        "ne zaman", "kime", "kimi",
+
+        # Insan / Sosyal
+        "adam", "kadin", "baba", "anne", "abi", "abla", "hala", "teyze", "dede",
+        "bebek", "cocuk", "arkadas", "sevgili", "es", "aile",
+
+        # Egitim / Hayat
+        "okul", "sinif", "ders", "kitap", "defter", "kalem", "universite", "hoca",
+        "not", "sinav", "egitim",
+
+        # Yer / Mekan
+        "ev", "oda", "salon", "bina", "yol", "cadde", "sokak", "park", "bahce",
+        "market", "magaza", "kafe", "otel",
+
+        # Zaman
+        "bugun", "yarin", "dun", "sabah", "ogle", "aksam", "gece", "hafta", "ay", "yil",
+
+        # Fiil Kokleri (Basit)
+        "gel", "git", "al", "ver", "yap", "et", "bak", "bul", "kal", "ac", "kapa",
+        "yaz", "oku", "anla", "bil", "sev", "koru", "tut", "koy", "goster",
+
+        # Duygu / Soyut
+        "ask", "umut", "mutlu", "uzgun", "kotu", "iyi", "zor", "kolay", "dogru",
+        "yanlis", "temiz", "kirli",
+
+        # Din / Kultur
+        "allah", "dua", "iman", "ahiret", "helal", "haram", "amin",
+
+        # Sayilar
+        "bir", "iki", "uc", "bes", "alti", "yedi", "sekiz", "dokuz", "on", "yuz", "bin"
+    ]
 
     if any(c in text for c in turkish_chars):
         return "tr"
@@ -244,11 +284,11 @@ class UserMessage(BaseModel):
 # ----------------------------------------g-----
 @app.post("/ask")
 def ask(msg: UserMessage):
-# api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+    # api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-   # if not api_key_header:
-  #  return JSONResponse(status_code=401, content={"detail": "API key missing"})
-   # if api_key_header != API_KEY:
+    # if not api_key_header:
+    #  return JSONResponse(status_code=401, content={"detail": "API key missing"})
+    # if api_key_header != API_KEY:
     #    return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
 
     headers = {
