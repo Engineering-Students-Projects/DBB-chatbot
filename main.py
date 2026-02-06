@@ -18,8 +18,8 @@ API_KEY = os.getenv("API_KEY")
 if not DEEPSEEK_API_KEY:
     raise RuntimeError("DEEPSEEK_API_KEY not set")
 
-if not API_KEY:
-    raise RuntimeError("API_KEY not set")
+# if not API_KEY:
+#     raise RuntimeError("API_KEY not set")
 
 # ---------------------------------------------
 # FASTAPI APP
