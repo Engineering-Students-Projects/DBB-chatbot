@@ -241,7 +241,7 @@ def pick_lang(text: str) -> str:
     turkish_words = [
         # Selamlasma / Genel
         "merhaba", "selam", "sa", "iyi", "gun", "aksam", "gece", "tamam", "evet", "hayir",
-        "olur", "degil", "bitti", "basla", "dur", "bekle",
+        "olur", "degil", "bitti", "basla", "bekle",
 
         # Baglac / Edat / Temel Dil
         "ve", "ile", "ama", "fakat", "lakin", "ya", "yada", "ancak", "hem", "de", "da",
