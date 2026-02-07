@@ -131,7 +131,7 @@ PROFILES & CONTACT (ONLY IF ASKED):
 - GitHub: https://github.com/Engineering-Students-Projects  
 
 DOCUMENTS:
-- CV Link: [https://dbb-chatbot.auronvila.com/Duru_Beren_Bas_CV.pdf]
+- CV Link: https://dbb-chatbot.auronvila.com/Duru_Beren_Bas_CV.pdf
 
 CAREER & AVAILABILITY STATUS:
 - Current Status: 2nd-year Computer Engineering student at Doğuş University.
