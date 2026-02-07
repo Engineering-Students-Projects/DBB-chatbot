@@ -127,7 +127,7 @@ PERSONAL DETAILS (ONLY IF EXPLICITLY ASKED AND DEFINED ABOVE):
 
 PROFILES & CONTACT (ONLY IF ASKED):
 - Email: duruberenbas@gmail.com
-- LinkedIn: https://www.linkedin.com/in/duruberenbas
+- LinkedIn: https://www.linkedin.com/in/duru-beren-ba%C5%9F-445a182a3/
 - GitHub: https://github.com/Engineering-Students-Projects  
 
 DOCUMENTS:
