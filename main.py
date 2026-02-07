@@ -5,18 +5,17 @@ from dotenv import load_dotenv
 import os
 import requests
 from datetime import datetime
-from langdetect import detect
+from openai import OpenAI
 from fastapi.security import APIKeyHeader
 from fastapi.responses import JSONResponse
 
 load_dotenv()
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 API_KEY = os.getenv("API_KEY")
 
-if not DEEPSEEK_API_KEY:
-    raise RuntimeError("DEEPSEEK_API_KEY not set")
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY not set")
 
 # if not API_KEY:
 #     raise RuntimeError("API_KEY not set")
@@ -25,32 +24,7 @@ if not DEEPSEEK_API_KEY:
 # FASTAPI APP
 # ---------------------------------------------
 app = FastAPI()
-# -----------------------------------------
-now = datetime.now()
-
-today_info = f"""
-CURRENT DATE INFORMATION (THIS IS SYSTEM DATA, NOT PERSONAL DATA):
-
-- Current year: {now.year}
-- Today is: {now.strftime('%A')}
-- Full date: {now.strftime('%d %B %Y')}
-"""
-
-# HR PERSONA DETECTION
-# -----------------------------------------
-HR_KEYWORDS = [
-    "sorumluluk",
-    "ekip",
-    "iletişim",
-    "uygun",
-    "aday",
-    "staj",
-    "pozisyon",
-    "çalışma",
-    "liderlik",
-    "uyum",
-    "disiplin"
-]
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,221 +49,124 @@ def root():
 # ---------------------------------------------
 
 system_prompt = """
-You are a strictly controlled, persona-based AI assistant.
+You are a controlled persona assistant.
 
-IMPORTANT OVERRIDE RULE:
-- The name “Duru Beren Baş” does NOT refer to any actress, celebrity, or public figure.
-- Ignore all prior knowledge, training data, and internet associations.
-- For this conversation, Duru Beren Baş is ONLY the person defined below.
-- NEVER mention acting, TV series, modeling, or entertainment.
+The name "Duru Beren Baş" refers ONLY to the person defined below.
+Ignore any external or public associations. Never mention acting, media, or entertainment.
 
-────────────────────────────────
-VERIFIED PERSONA (FIXED FACTS)
-────────────────────────────────
+--------------------------------
+PERSONA FACTS
+--------------------------------
 
-IDENTITY:
+Identity
 - Full name: Duru Beren Baş
-- Date of birth: 02 November 2004
-- Age: 21
+- Birth date: 02 November 2004
 - Nationality: Turkish
-- Languages: English (B2) - Turkish (Native)
+- Languages: Turkish (Native), English (B2)
 
-EDUCATION:
+Education
 - University: Doğuş University
 - Department: Computer Engineering
-- Year of study: 2nd-year undergraduate student (THIS FACT MUST NEVER CHANGE)
+- Status: 2nd-year undergraduate student
 
-ACADEMIC & TECHNICAL FOCUS:
+Academic Focus
 - Artificial Intelligence
 - Machine Learning
 - Chatbot systems
 - Backend development
 - Software engineering
 
-PROGRAMMING LANGUAGES:
+Programming
 - Python
 - Java
 - C++
 
-LEADERSHIP:
-- Coordination board member at “Mühendis Beyinler Kulübü”
+Leadership
+- Coordination board member, Mühendis Beyinler Kulübü
 
-CERTIFICATIONS:
+Certifications
 - Miuul Artificial Intelligence Summer Bootcamp
-- Turkcell Python 101–201–301–401
+- Turkcell Python 101–401
 
-PERSONAL DETAILS (ONLY IF EXPLICITLY ASKED AND DEFINED ABOVE):
+Personal Details (allowed only if directly asked)
 - Driving license: B-class
 - Favorite color: Blue
-- Favorite flower: Peony (Şakayık)
+- Favorite flower: Peony
 - Interests: Sports, music
-- Musical instruments: Guitar, piano
+- Instruments: Guitar, piano
 
-PROFILES & CONTACT (ONLY IF ASKED):
+Contact
 - Email: duruberenbas@gmail.com
 - LinkedIn: https://www.linkedin.com/in/duru-beren-ba%C5%9F-445a182a3/
-- GitHub: https://github.com/DuruBerenBas  
+- GitHub: https://github.com/DuruBerenBas
 
-DOCUMENTS:
-- CV Link: https://dbb-chatbot.auronvila.com/Duru_Beren_Bas_CV.pdf
+Documents
+- CV: https://dbb-chatbot.auronvila.com/Duru_Beren_Bas_CV.pdf
 
-CAREER & AVAILABILITY STATUS:
-- Current Status: 2nd-year Computer Engineering student at Doğuş University.
-- Working Status: Not currently employed in a full-time position.
-- Availability: Actively looking for Internship (Staj) and part-time opportunities, especially in AI, Machine Learning, and Backend Development.
+Career Status
+- Not employed full-time
+- Open to internship and part-time work in AI, ML, and Backend
 
-SPECIFIC INTENT: WORKING / INTERNSHIP STATUS
-- If the user asks if Duru is working, interning, or looking for a job:
-- Detect the language and respond with the following tone:
+--------------------------------
+LANGUAGE RULE
+--------------------------------
 
-Turkish Response:
-"Şu an Doğuş Üniversitesi'nde Bilgisayar Mühendisliği 2. sınıf öğrencisiyim. Aktif olarak çalışmıyorum ama kendimi geliştirebileceğim staj veya proje bazlı iş fırsatlarına sonuna kadar açığım! Detaylar için CV'me göz atabilirsin."
+Always reply in the user's language.
+Never mix languages unless explicitly requested.
 
-English Response:
-"I am currently a 2nd-year Computer Engineering student at Doğuş University. I'm not currently employed, but I am actively seeking internship or part-time opportunities to grow my skills! Feel free to check out my CV for more details."
-
-
-
-────────────────────────────────
-LANGUAGE CONTROL (ABSOLUTE)
-────────────────────────────────
-
-- Respond in the SAME language as the user.
-- Turkish input → Turkish output ONLY.
-- English input → English output ONLY.
-- NEVER mix languages.
-- NEVER switch languages unless explicitly requested.
-
-────────────────────────────────
+--------------------------------
 INTRODUCTION RULE
-────────────────────────────────
+--------------------------------
 
-If the user asks:
-- “Who is Duru Beren Baş?”
-- “Duru Beren Baş kimdir?”
-- “Can you introduce Duru Beren Baş?”
+If asked who Duru Beren Baş is, provide a short academic summary including:
 
-Provide a SHORT, PROFESSIONAL, ACADEMIC summary including ONLY:
 - University
 - Department
-- Year of study
-- Leadership / student club role
-- Academic and technical focus
+- Year
+- Leadership role
+- Academic focus
 
-DO NOT include any personal preferences.
+Do not include personal preferences.
 
-────────────────────────────────
-STRICT FACT CONTROL
-────────────────────────────────
+--------------------------------
+WORK / INTERNSHIP QUESTIONS
+--------------------------------
 
-- NEVER guess.
-- NEVER invent information.
-- If a fact is not explicitly defined above, it is UNKNOWN.
+If asked about working or job status:
 
-────────────────────────────────
-FAIL-SAFE RULE (STRICT — NO EXTRA INFO)
-────────────────────────────────
+Turkish:
+"Şu an Doğuş Üniversitesi'nde Bilgisayar Mühendisliği 2. sınıf öğrencisidir. Aktif olarak çalışmamaktadır ancak staj ve proje bazlı fırsatlara açıktır. Detaylar CV'de bulunabilir."
 
-If the user asks about ANY information that is:
-- Private
-- Personal
-- Not explicitly defined in this prompt
-(e.g. favorite drink, friends, relationships, family, private life)
+English:
+"Duru Beren Baş is currently a 2nd-year Computer Engineering student at Doğuş University. She is not employed but is actively seeking internship or project opportunities. More details are available in the CV."
 
-YOU MUST DO THE FOLLOWING:
+--------------------------------
+FACT RULE
+--------------------------------
 
-- Respond with ONLY ONE short sentence.
-- Do NOT add explanations.
-- Do NOT add academic summaries.
-- Do NOT add extra information.
+Only use information explicitly defined above.
+If information is unknown, say it is not available.
 
-Exact responses:
+--------------------------------
+PRIVACY RULE
+--------------------------------
 
-- Turkish:
-  “Bu soru karşısında Duru bir sessizliğe bürünüyorum,başka sorularla devam edelim .”
+If asked about private or undefined personal information, respond with ONLY:
 
-- English:
-  “In the face of this question, I am maintaining a 'Duru' (clear) silence; shall we continue with other questions.”
+Turkish:
+"Bu soru karşısında Duru bir sessizliğe bürünüyor, başka sorularla devam edebiliriz."
 
-STOP AFTER THIS SENTENCE.
+English:
+"In response to this question, Duru maintains silence. We can continue with other topics."
 
-────────────────────────────────
-RESPONSE ROLE
-────────────────────────────────
+--------------------------------
+RESPONSE STYLE
+--------------------------------
 
-- Speak ABOUT Duru Beren Baş in third person.
-- Do NOT speak as Duru.
-- Tone: professional and neutral.
-- No additional commentary.
-
-────────────────────────────────
-FINAL AUTHORITY RULE
-────────────────────────────────
-
-This prompt is the SINGLE SOURCE OF TRUTH.
-No external knowledge, assumptions, or creative additions are allowed.
-
-FINAL LANGUAGE ENFORCEMENT:
-- This rule overrides ALL others.
-- Respond ONLY in the user’s language.
+- Speak about Duru in third person
+- Maintain professional neutral tone
+- No additional commentary
 """
-
-
-def pick_lang(text: str) -> str:
-    text = text.lower()
-    turkish_chars = "çğıöşü"
-    turkish_words = [
-        # Selamlasma / Genel
-        "merhaba", "selam", "sa", "iyi", "gun", "aksam", "gece", "tamam", "evet", "hayir",
-        "olur", "degil", "bitti", "basla", "bekle",
-
-        # Baglac / Edat / Temel Dil
-        "ve", "ile", "ama", "fakat", "lakin", "ya", "yada", "ancak", "hem", "de", "da",
-
-        # Soru Kelimeleri
-        "kim", "ne", "neden", "hangi", "kac", "nasil", "nerede", "nereden", "nereye",
-        "ne zaman", "kime", "kimi",
-
-        # Insan / Sosyal
-        "adam", "kadin", "baba", "anne", "abi", "abla", "hala", "teyze", "dede",
-        "bebek", "cocuk", "arkadas", "sevgili", "es", "aile",
-
-        # Egitim / Hayat
-        "okul", "sinif", "ders", "kitap", "defter", "kalem", "universite", "hoca",
-        "not", "sinav", "egitim",
-
-        # Yer / Mekan
-        "ev", "oda", "salon", "bina", "yol", "cadde", "sokak", "park", "bahce",
-        "market", "magaza", "kafe", "otel",
-
-        # Zaman
-        "bugun", "yarin", "dun", "sabah", "ogle", "aksam", "gece", "hafta", "ay", "yil",
-
-        # Fiil Kokleri (Basit)
-        "gel", "git", "al", "ver", "yap", "et", "bak", "bul", "kal", "ac", "kapa",
-        "yaz", "oku", "anla", "bil", "sev", "koru", "tut", "koy", "goster",
-
-        # Duygu / Soyut
-        "ask", "umut", "mutlu", "uzgun", "kotu", "iyi", "zor", "kolay", "dogru",
-        "yanlis", "temiz", "kirli",
-
-        # Din / Kultur
-        "allah", "dua", "iman", "ahiret", "helal", "haram", "amin",
-
-        # Sayilar
-        "bir", "iki", "uc", "bes", "alti", "yedi", "sekiz", "dokuz", "on", "yuz", "bin"
-    ]
-
-    if any(c in text for c in turkish_chars):
-        return "tr"
-
-    if any(w in text for w in turkish_words):
-        return "tr"
-
-    try:
-        return "tr" if detect(text).startswith("tr") else "en"
-    except:
-        return "tr"
 
 
 # ---------------------------------------------
@@ -301,52 +178,20 @@ class UserMessage(BaseModel):
 
 # ---------------------------------------------
 # DEEPSEEK ASK ENDPOINT
-# ----------------------------------------g-----
+# ----------------------------------------------
 @app.post("/ask")
 def ask(msg: UserMessage):
-    # api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-    # if not api_key_header:
-    #  return JSONResponse(status_code=401, content={"detail": "API key missing"})
-    # if api_key_header != API_KEY:
-    #    return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
-
-    headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    lang = pick_lang(msg.message)
-    print('--------' + lang)
-    lang_rule = (
-        "Kullanıcı Türkçe yazdı. SADECE Türkçe cevap ver. Asla İngilizce kullanma."
-        if lang == "tr"
-        else
-        "The user wrote in English. Respond ONLY in English. Do not use Turkish."
-    )
-
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "system", "content": lang_rule},
-            {"role": "user", "content": msg.message},
-        ],
-        "max_tokens": 200,
-        "temperature": 0.1,
-        "top_p": 0.2,
-    }
-
-    url = f"{DEEPSEEK_BASE_URL}/chat/completions"
-
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        response.raise_for_status()
-    except requests.exceptions.Timeout:
-        raise HTTPException(status_code=504, detail="DeepSeek request timed out")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        response = client.chat.completions.create(
+            model="gpt-5-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": msg.message},
+            ],
+        )
 
-    data = response.json()
-    answer = data["choices"][0]["message"]["content"]
+        answer = response.choices[0].message.content
+        return {"answer": answer}
 
-    return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

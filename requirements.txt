@@ -4,3 +4,4 @@ requests
 python-dotenv
 fastapi
 langdetect==1.0.9
+openai
