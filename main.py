@@ -8,9 +8,12 @@ from datetime import datetime
 from openai import OpenAI
 from fastapi.security import APIKeyHeader
 from fastapi.responses import JSONResponse
+import json
+import os
+from datetime import datetime, timezone
 
 load_dotenv()
-
+LOG_FILE = "chat_history.json"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 API_KEY = os.getenv("API_KEY")
 
@@ -316,6 +319,31 @@ class UserMessage(BaseModel):
 # ---------------------------------------------
 # DEEPSEEK ASK ENDPOINT
 # ----------------------------------------------
+
+def append_chat_log(question: str, answer: str):
+    # Ensure file exists
+    if not os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f)
+
+    # Read existing logs
+    try:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        data = []
+
+    # Append new entry
+    data.append({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "question": question,
+        "answer": answer
+    })
+
+    with open(LOG_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
 @app.post("/ask")
 def ask(msg: UserMessage):
     try:
@@ -328,6 +356,9 @@ def ask(msg: UserMessage):
         )
 
         answer = response.choices[0].message.content
+
+        append_chat_log(msg.message, answer)
+
         return {"answer": answer}
 
     except Exception as e:
