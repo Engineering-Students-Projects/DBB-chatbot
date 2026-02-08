@@ -232,7 +232,7 @@ PROJECT INFORMATION (IMPORTANT):
 - English question → English answer with GitHub link.
 
 Verified project link:
-GitHub: https://github.com/Engineering-Students-Projects
+GitHub: https://github.com/DuruBerenBas
 
 When answering project-related questions:
 - Provide a short summary of her interest areas (AI, backend, chatbot development).
