@@ -9,3 +9,6 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+

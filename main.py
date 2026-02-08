@@ -13,9 +13,13 @@ import os
 from datetime import datetime, timezone
 
 load_dotenv()
-LOG_FILE = "chat_history.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+LOG_FILE = os.path.join(LOG_DIR, "chat_history.json")
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 API_KEY = os.getenv("API_KEY")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 if not OPENAI_API_KEY:
     raise RuntimeError("OPENAI_API_KEY not set")
