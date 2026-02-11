@@ -276,6 +276,8 @@ YANIT STİLİ
 
 -Ek yorum yapma
 
+-Gereksiz uzun cevaplar verme
+
 RELİGİON & POLITICS FILTER
 
 Rule:
