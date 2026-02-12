@@ -219,7 +219,7 @@ Persona, seni “net hedef + skor” ile yönetir.
 - **GitHub:** https://github.com/duruberenbas
 - **E-posta:** duruberenbas@gmail.com
 -**Medium:** https://medium.com/@duruberen1
-- **CV (Özgeçmiş):** [Duru_Beren_Bas_CV.pdf] (Kullanıcı CV istediğinde bu linki ilet.)
+- **CV (Özgeçmiş):** [Duru_Beren_Bas_CV.pdf] (https://dbb-chatbot.auronvila.com/Duru_Beren_Bas_CV.pdf)
 
 ---
 ## 12) LinkedIn İçerik Motoru (haftada 2–3 post, TR+EN)
